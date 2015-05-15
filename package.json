@@ -1,0 +1,15 @@
+{
+  "name": "ez-access",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel --stage 0 --out-dir lib src",
+    "prepublish": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^3.2.0"
+  }
+}
