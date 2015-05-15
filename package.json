@@ -2,7 +2,7 @@
   "name": "ez-access",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "babel --stage 0 --out-dir lib src",
     "prepublish": "npm run build"
