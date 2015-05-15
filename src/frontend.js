@@ -15,7 +15,7 @@ export default class EZRoutes {
   }
   _handleRequest(modelName, routeName, routeDetails, args) {
     let data = this._extractData(routeDetails.args, args);
-    let path = this._constructPath(modelName, routeName, routeDetails.pattern, data);
+    let path = this._constructPath(modelName, routeName, data);
     let method = routeDetails.method || this._getMethod(routeName) || 'get';
     if(method === 'get') {
       path += this._constructQuery(data);
@@ -39,7 +39,7 @@ export default class EZRoutes {
         } else {
           if(prefix)
             key = `${prefix}[${key}]`;
-          if(typeof val is 'object') {
+          if(typeof val === 'object') {
             return this.serialize(val, key);
           } else {
             return key + '=' + encodeURIComponent(val);
@@ -85,14 +85,15 @@ export default class EZRoutes {
       return data;
     }, {});
   }
-  _constructPath(modelName, routeName, pattern, data) {
+  _constructPath(modelName, routeName, data) {
     let pattern = this._getPattern(modelName, routeName, routeDetails);
     return pattern.replace(/(\/:[^\/]*?)(?=($|\/))/g, (text)=> {
       return '/' + data[text.substring(2)];
     });
   }
   _getPattern(modelName, routeName, routeDetails) {
-    if(let pattern = routeDetails.pattern) {
+    let pattern;
+    if(pattern = routeDetails.pattern) {
       return pattern;
     }
     let modelPath = '/' + _.kebabCase(modelName);
