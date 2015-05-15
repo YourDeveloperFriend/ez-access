@@ -3,22 +3,27 @@ import axios from 'axios';
 
 let dataMethods = ['put', 'post'];
 
+let defaultOptions = {
+  baseRoute: ''
+};
+
 export default class EZRoutes {
-  constructor(options = {}) {
-    this.options = options;
+  constructor(options) {
+    this.options = _.extend({}, defaultOptions, options);
     this.pendingRequests = [];
   }
   addController(modelName, routes) {
+    let tableName = routes.tableName;
     this[modelName] = _.mapValues(routes, (routeDetails, routeName)=> {
       return (...args)=> {
-        return this._handleRequest(modelName, routeName, routeDetails, args);
+        return this._handleRequest({tableName, modelName, routeName, routeDetails, args});
       };
     });
   }
-  _handleRequest(modelName, routeName, routeDetails, args) {
-    let data = this._extractData(routeDetails.args, args);
-    let path = this._constructPath(routeDetails, modelName, routeName, data);
-    let method = routeDetails.method || this._getMethod(routeName) || 'get';
+  _handleRequest(options) {
+    let data = this._extractData(options.routeDetails.args, options.args);
+    let path = this._constructPath(options, data);
+    let method = options.routeDetails.method;
     if(method === 'get') {
       path += this._constructQuery(data);
       data = null;
@@ -32,7 +37,7 @@ export default class EZRoutes {
     }
     return '';
   }
-  _serialize(data, prefix) {
+  _serialize(obj, prefix) {
     let str = [];
     if(obj) {
       return _.map(obj, (val, key)=> {
@@ -50,11 +55,6 @@ export default class EZRoutes {
       }).join('&');
     }
     return '';
-  }
-  _getMethod(routeName) {
-    return _.find(['get', 'put', 'post', 'delete'], (method)=> {
-      return routeName.indexOf(method) === 0;
-    });
   }
   _makeRequest(method, path, data) {
     let promise;
@@ -87,53 +87,12 @@ export default class EZRoutes {
       return data;
     }, {});
   }
-  _constructPath(routeDetails, modelName, routeName, data) {
-    let pattern = this._getPattern(modelName, routeName, routeDetails);
-    return pattern.replace(/(\/:[^\/]*?)(?=($|\/))/g, (text)=> {
-      return '/' + data[text.substring(2)];
+  _constructPath(options, data) {
+    let path = options.routeDetails.pathPattern.replace(/(\/:[^\/]*?)(?=($|\/))/g, (text)=> {
+      let variableName = text.substring(2);
+      variableName = variableName.replace(/\(.*?\)/g, '');
+      return '/' + data[variableName];
     });
-  }
-  _getPattern(modelName, routeName, routeDetails) {
-    let pattern;
-    if(pattern = routeDetails.pattern) {
-      return pattern;
-    }
-    let modelPath = '/' + _.kebabCase(modelName);
-    let endpoint = '';
-    switch(routeName) {
-      case 'query':
-      case 'add':
-      case 'create':
-      case 'post':
-      case 'batchDelete':
-        break;
-      case 'batchCreate':
-      case 'batchAdd':
-      case 'batchPost':
-      case 'delete':
-        endpoint = '/create';
-        break;
-      case 'get':
-      case 'save':
-      case 'update':
-      case 'put':
-        endpoint = '/:id';
-        break;
-      case 'batchSave':
-      case 'batchUpdate':
-      case 'batchPut':
-        endpoint = '/update';
-        break;
-      default:
-        let method = this._getMethod(routeName);
-        if(method) {
-          routeName = routeName.substring(method.length);
-        }
-        endpoint = '/' + _.kebabCase(routeName);
-        if(routeDetails.usesId) {
-          endpoint = '/:id' + endpoint;
-        }
-    }
-    return modelPath + endpoint;
+    return this.options.baseRoute + path;
   }
 }
