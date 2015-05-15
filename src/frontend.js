@@ -1,6 +1,8 @@
 
 import axios from 'axios';
 
+let dataMethods = ['put', 'post'];
+
 export default class EZRoutes {
   constructor(options = {}) {
     this.options = options;
