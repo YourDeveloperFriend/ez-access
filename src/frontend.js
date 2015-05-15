@@ -28,7 +28,7 @@ export default class EZRoutes {
       path += this._constructQuery(data);
       data = null;
     }
-    this._makeRequest(method, path, data);
+    return this._makeRequest(method, path, data);
   }
   _constructQuery(data) {
     let query = this._serialize(data);
