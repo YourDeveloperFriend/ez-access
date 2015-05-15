@@ -15,7 +15,7 @@ export default class EZRoutes {
   }
   _handleRequest(modelName, routeName, routeDetails, args) {
     let data = this._extractData(routeDetails.args, args);
-    let path = this._constructPath(modelName, routeName, data);
+    let path = this._constructPath(routeDetails, modelName, routeName, data);
     let method = routeDetails.method || this._getMethod(routeName) || 'get';
     if(method === 'get') {
       path += this._constructQuery(data);
@@ -85,7 +85,7 @@ export default class EZRoutes {
       return data;
     }, {});
   }
-  _constructPath(modelName, routeName, data) {
+  _constructPath(routeDetails, modelName, routeName, data) {
     let pattern = this._getPattern(modelName, routeName, routeDetails);
     return pattern.replace(/(\/:[^\/]*?)(?=($|\/))/g, (text)=> {
       return '/' + data[text.substring(2)];
